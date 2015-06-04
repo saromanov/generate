@@ -2,6 +2,7 @@ import numpy as np
 import theano.tensor as T
 import theano
 from base import Recurrent, shared
+from activations import sigmoid, tanh
 
 #Implementation of Gated Recurrent Unit
 #Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling
@@ -27,9 +28,13 @@ class GRU(Recurrent):
 		self.bz = theano.shared(np.asarray(np.zeros(nhid), dtype=theano.config.floatX), name='bv')
 		self.bo = theano.shared(np.asarray(np.zeros(nout), dtype=theano.config.floatX), name='bo')
 		self.params = [self.Wh, self.Uh, self.Wo, self.Wx, self.Ux, self.Uz, self.Wz, self.bx, self.bo, self.bz, self.bh]
+    
+    def check_activations(self, activations):
+    	pass
 		
-	def _forward(self, x_t, h_prev):
-		z = T.nnet.sigmoid(T.dot(x_t, self.Wh) + self.bh + T.dot(h_prev, self.Uh))
-		r = T.nnet.sigmoid(T.dot(x_t, self.Wx) + self.bx + T.dot(h_prev, self.Ux))
+	def _forward(self, x_t, h_prev, activations=None):
+		""" activations - list of activations for wach step( all is three steps) """
+		z = sigmoid(T.dot(x_t, self.Wh) + self.bh + T.dot(h_prev, self.Uh))
+		r = sigmoid(T.dot(x_t, self.Wx) + self.bx + T.dot(h_prev, self.Ux))
 		h = T.tanh(T.dot(x_t, self.Wz) + self.bz + T.dot(r * h_prev, self.Uz))
 		return (1 - z) * h_prev + z * h
